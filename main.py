@@ -5,6 +5,8 @@ from PyQt5 import QtCore, QtWidgets, QtGui
 from PyQt5.QtWidgets import QMainWindow, QLabel, QApplication, QGridLayout, QWidget, QLineEdit
 from PyQt5.QtCore import QSize
 
+from subprocess import Popen, PIPE, STDOUT
+
 class MyWindow(QMainWindow):
   def __init__(self):
     super(MyWindow, self).__init__()
@@ -70,9 +72,33 @@ class MyWindow(QMainWindow):
     self.entrada = self.codigoacao.text()
     self.saida = 'respostas.txt'
     self.script = '.\scriptexterno.py'
-    self.program = 'python ' + self.script + ' \"' + self.entrada + '\" ' + self.saida
+
+    javaFile = './bruto_final.jar'
+
+    # self.program = 'python ' + self.script + ' \"' + self.entrada + '\" ' + self.saida
+    self.program = 'java -jar {0} {1}'.format(javaFile, self.entrada)
     print(self.program)
-    self.result = subprocess.run(self.program, shell=True)
+    # self.result = subprocess.run(self.program, shell=True)
+
+    # Executa o arquivo JAR (java compilado) configurado para não exibir a saída no console do python
+    process = subprocess.Popen(self.program, stdout=subprocess.PIPE, stderr=PIPE)
+    print('Esperando o algoritmo de brute force finalizar...')
+    # Aguarda o encerramento do programma java
+    exitCode = process.wait() 
+    print('Algoritmo finalizado')
+    # Pega a saída retornada pelo programa java
+    result, error = process.communicate()
+    # É necessário fazer a decodificação. Ex: b'hi\n' -> 'hi'
+    result = result.decode('ascii')
+    
+    
+    if exitCode == 0:
+      print("Senha: " + result)
+    else:
+      print("A senha não foi encontrada")
+      # print(error)
+
+    
  
   def run_me_too(self):
     try:
